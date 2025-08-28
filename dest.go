@@ -69,7 +69,7 @@ func makeDestFunc[R any](columns []string) (f destFunc[R], err error) {
 	if rt := reflect.TypeFor[R](); rt.Kind() == reflect.Struct {
 		mapping := getStructMapping(rt)
 		f = func(result *R) (dest []any) {
-			rv := reflect.ValueOf(*result)
+			rv := reflect.ValueOf(result).Elem()
 			for _, column := range columns {
 				field, found := mapping[column]
 				if found {
