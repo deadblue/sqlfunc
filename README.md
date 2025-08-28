@@ -1,6 +1,6 @@
 # SQL-Function
 
-Execute your SQL as function.
+Run your SQL as function.
 
 ## Example
 
@@ -25,7 +25,7 @@ type (
 		// sql.NullXXX types are supported.
 		LastName sql.NullString
 		// Mapping "sex" column to [Gender] field.
-		Gender int `db:"sex"`
+		Gender int `sql:"sex"`
 	}
 )
 

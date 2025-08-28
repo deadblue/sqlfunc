@@ -20,7 +20,7 @@ type (
 		// sql.NullXXX types are supported.
 		LastName sql.NullString
 		// Mapping "sex" column to [Gender] field.
-		Gender int `db:"sex"`
+		Gender int `sql:"sex"`
 	}
 )
 

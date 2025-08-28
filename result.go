@@ -5,10 +5,6 @@ import (
 	"strings"
 )
 
-const (
-	_TagName = "db"
-)
-
 /*
 Scannable is an interface that can be implemented by query result struct, to
 avoid the performance overhead of reflection.
@@ -42,6 +38,10 @@ type Scannable interface {
 	Dest(columns []string) (dest []any)
 }
 
+const (
+	_TagKey = "sql"
+)
+
 var (
 	_StructMappingCache = map[reflect.Type]map[string]string{}
 )
@@ -52,7 +52,7 @@ func getStructMapping(rt reflect.Type) map[string]string {
 		mapping = make(map[string]string)
 		for i := range rt.NumField() {
 			ft := rt.Field(i)
-			if desc, found := ft.Tag.Lookup(_TagName); found {
+			if desc, found := ft.Tag.Lookup(_TagKey); found {
 				if strings.ContainsRune(desc, ',') {
 					props := strings.Split(desc, ",")
 					mapping[props[0]] = ft.Name
