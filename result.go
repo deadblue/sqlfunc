@@ -43,14 +43,12 @@ type Scannable interface {
 }
 
 var (
-	_ColumnMappingCache = map[reflect.Type]map[string]string{}
-
-	_ScannaleType = reflect.TypeFor[Scannable]()
+	_StructMappingCache = map[reflect.Type]map[string]string{}
 )
 
-func getColumnMapping(rt reflect.Type) map[string]string {
-	mapping, ok := _ColumnMappingCache[rt]
-	if !ok {
+func getStructMapping(rt reflect.Type) map[string]string {
+	mapping, found := _StructMappingCache[rt]
+	if !found {
 		mapping = make(map[string]string)
 		for i := range rt.NumField() {
 			ft := rt.Field(i)
@@ -67,43 +65,17 @@ func getColumnMapping(rt reflect.Type) map[string]string {
 			}
 		}
 		// Put mapping to cache
-		_ColumnMappingCache[rt] = mapping
+		_StructMappingCache[rt] = mapping
 	}
 	return mapping
 }
 
-func getResultDest(result any, columns []string) (dest []any) {
-	if sr, ok := result.(Scannable); ok {
-		return sr.Dest(columns)
-	}
-	rv := reflect.ValueOf(result)
-	for rv.Kind() == reflect.Pointer {
-		rv = rv.Elem()
-	}
-	if rv.Kind() == reflect.Struct {
-		columnMapping := getColumnMapping(rv.Type())
-		for _, column := range columns {
-			field, found := columnMapping[column]
-			if found {
-				fv := rv.FieldByName(field)
-				// Put field point to dest
-				dest = append(dest, fv.Addr().Interface())
-			} else {
-				// Put void to dest
-				dest = append(dest, Void{})
-			}
-		}
-	} else {
-		// TODO: Support other type
-	}
-	return
-}
-
 // preprocessResult initializes mapping cache to result type
 func preprocessResult[R any]() {
-	rt := reflect.TypeFor[R]()
-	if pt := reflect.PointerTo(rt); pt.AssignableTo(_ScannaleType) {
+	if pt := reflect.TypeFor[*R](); pt.AssignableTo(_TypeScannable) {
 		return
 	}
-	_ = getColumnMapping(rt)
+	if rt := reflect.TypeFor[R](); rt.Kind() == reflect.Struct {
+		getStructMapping(rt)
+	}
 }
