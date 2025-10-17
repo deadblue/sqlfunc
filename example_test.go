@@ -44,17 +44,21 @@ func Example() {
 	ctx := sqlfunc.NewContext(context.TODO(), db)
 
 	// Execute query
-	if user, err := queryUser(ctx, QueryParams{
+	result, err := queryUser(ctx, QueryParams{
 		UserId: "123",
 		Status: 1,
-	}); err != nil {
+	})
+	if err != nil {
 		panic(err)
+	}
+	if !result.Valid {
+		return
+	}
+	user := result.V
+	// Process result
+	if user.LastName.Valid {
+		log.Printf("Found user: %s-%s", user.FirstName, user.LastName.String)
 	} else {
-		// Process result
-		if user.LastName.Valid {
-			log.Printf("Found user: %s-%s", user.FirstName, user.LastName.String)
-		} else {
-			log.Printf("Found user: %s", user.FirstName)
-		}
+		log.Printf("Found user: %s", user.FirstName)
 	}
 }

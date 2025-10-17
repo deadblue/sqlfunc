@@ -2,6 +2,7 @@ package sqlfunc
 
 import (
 	"context"
+	"database/sql"
 	"iter"
 	"strings"
 
@@ -10,10 +11,10 @@ import (
 
 type (
 	// QueryFunc executes a retrieving query, returns the first result.
-	QueryFunc[P, R any] func(context.Context, P) (R, error)
+	QueryFunc[P, R any] func(context.Context, P) (sql.Null[R], error)
 	// QueryFunc executes a retrieving query without parameters, returns the
 	// first result.
-	QueryFunc0[R any] func(context.Context) (R, error)
+	QueryFunc0[R any] func(context.Context) (sql.Null[R], error)
 
 	// QuerySeqFunc executes a retrieving query, returns an iterator for all
 	// matched results.
@@ -32,7 +33,7 @@ func MakeQueryFunc[P, R any](lines ...string) (f QueryFunc[P, R], err error) {
 	preprocessResult[R]()
 	tmpl, err := sqltmpl.Parse[P](lines...)
 	if err == nil {
-		f = func(ctx context.Context, params P) (result R, err error) {
+		f = func(ctx context.Context, params P) (result sql.Null[R], err error) {
 			query, args, err := tmpl.Render(params)
 			if err != nil {
 				return
@@ -47,7 +48,7 @@ func MakeQueryFunc[P, R any](lines ...string) (f QueryFunc[P, R], err error) {
 func MakeQueryFunc0[R any](lines ...string) (f QueryFunc0[R], err error) {
 	preprocessResult[R]()
 	query := strings.Join(lines, "\n")
-	f = func(ctx context.Context) (result R, err error) {
+	f = func(ctx context.Context) (result sql.Null[R], err error) {
 		return queryRow[R](ctx, query)
 	}
 	return

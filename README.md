@@ -49,13 +49,16 @@ func main() {
 	ctx := sqlfunc.NewContext(context.TODO(), db)
 
 	// Execute query
-	if user, err := queryUser(ctx, QueryParams{
+	result, err := queryUser(ctx, QueryParams{
 		UserId: "123",
 		Status: 1,
-	}); err != nil {
+	})
+	if err != nil {
 		panic(err)
-	} else {
-		// Process result
+	}
+	// Process result
+	if result.Valid {
+		user := result.V
 		if user.LastName.Valid {
 			log.Printf("Found user: %s-%s", user.FirstName, user.LastName.String)
 		} else {

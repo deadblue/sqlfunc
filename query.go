@@ -8,7 +8,7 @@ import (
 
 func queryRow[R any](
 	ctx context.Context, query string, args ...any,
-) (result R, err error) {
+) (result sql.Null[R], err error) {
 	executor, err := fromContext(ctx)
 	if err != nil {
 		return
@@ -19,9 +19,9 @@ func queryRow[R any](
 		return
 	}
 	defer rows.Close()
-	// Handle no rows
+	// Early return for no-rows
 	if !rows.Next() {
-		err = sql.ErrNoRows
+		err = rows.Err()
 		return
 	}
 	// Parse result
@@ -30,9 +30,12 @@ func queryRow[R any](
 		return
 	}
 	df, err := makeDestFunc[R](columns)
-	if err == nil {
-		dest := df(&result)
-		err = rows.Scan(dest...)
+	if err != nil {
+		return
+	}
+	dest := df(&result.V)
+	if err = rows.Scan(dest...); err == nil {
+		result.Valid = true
 	}
 	return
 }
